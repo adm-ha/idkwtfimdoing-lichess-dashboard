@@ -1,48 +1,44 @@
 // src/context/ThemeContext.tsx
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
+// Import context object and Theme type ONLY from the definition file
+// REMOVED ThemeContextProps from this import
+import { ThemeContext, Theme } from './themeContextDefinition';
 
-type Theme = 'light' | 'dark';
-
-interface ThemeContextProps {
-  theme: Theme;
-  toggleTheme: () => void;
-}
-
-// Create context with a default value (though it will be immediately updated by provider)
-const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
-
+// ThemeProviderProps remains internal or could be moved too, but usually fine here
 interface ThemeProviderProps {
   children: ReactNode;
 }
 
+// Export ONLY the ThemeProvider component
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  // State to hold the current theme. Initialize from localStorage or system preference.
+  // State logic uses the imported Theme type
   const [theme, setTheme] = useState<Theme>(() => {
     const storedTheme = localStorage.getItem('theme') as Theme | null;
     if (storedTheme) {
       return storedTheme;
     }
-    // Check system preference
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     return prefersDark ? 'dark' : 'light';
   });
 
-  // Effect to update localStorage and apply/remove 'dark' class on html element
+  // Effect logic remains the same
   useEffect(() => {
-    const root = window.document.documentElement; // Get the <html> element
+    const root = window.document.documentElement;
     if (theme === 'dark') {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
-    localStorage.setItem('theme', theme); // Save preference
+    localStorage.setItem('theme', theme);
   }, [theme]);
 
-  // Function to toggle the theme
+  // Toggle function remains the same
   const toggleTheme = () => {
     setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
+  // Provide the imported ThemeContext
+  // The value provided here implicitly matches ThemeContextProps
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
@@ -50,11 +46,4 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   );
 };
 
-// Custom hook to easily consume the theme context
-export const useTheme = (): ThemeContextProps => {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-};
+// No other exports from this file

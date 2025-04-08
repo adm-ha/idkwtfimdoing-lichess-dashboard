@@ -2,7 +2,8 @@
 import React from 'react';
 import * as Switch from '@radix-ui/react-switch';
 import { SunIcon, MoonIcon } from '@radix-ui/react-icons';
-import { useTheme } from '../context/ThemeContext';
+// import { useTheme } from '../context/ThemeContext'; // Old path
+import { useTheme } from '../hooks/useTheme'; // *** NEW PATH ***
 import { motion } from 'framer-motion'; // For subtle animation
 
 const ThemeToggle: React.FC = () => {
