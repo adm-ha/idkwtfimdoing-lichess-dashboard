@@ -7,173 +7,122 @@ import {
   LinearScale,
   PointElement,
   LineElement,
-  Title, // Make sure Title plugin is imported
+  Title,
   Tooltip,
   Legend,
   ChartOptions,
   ChartData,
-  ScaleOptionsByType, // For Axis title typing
-  CoreScaleOptions
+  // ScaleOptionsByType, // REMOVED - Not using complex type helper anymore
+  // CoreScaleOptions
 } from 'chart.js';
 import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
-import colors from 'tailwindcss/colors'; // Import colors
+import colors from 'tailwindcss/colors';
 
-// Register Chart.js components including the Title plugin
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title, // Register Title plugin
-  Tooltip,
-  Legend
+  CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend
 );
 
 interface RatingChartProps {
   title: string;
-  chartData: ChartData<'line'>; // Use the specific ChartData type
-  lineColor?: string; // Optional prop for specific line color
+  chartData: ChartData<'line'>;
+  lineColor?: string;
   className?: string;
 }
 
-// Helper type for adding title property to scales
-type AxisOptions = ScaleOptionsByType<'linear' | 'category'> & CoreScaleOptions & {
-    title?: {
-        display?: boolean;
-        text?: string;
-        color?: string;
-        font?: { size?: number; family?: string; weight?: string; };
-        padding?: { top?: number; bottom?: number; };
-    };
-};
+// REMOVED - AxisOptions helper type is no longer needed
+// type AxisOptions = ScaleOptionsByType<'linear' | 'category'> & CoreScaleOptions & { /* ... title definition ... */ };
 
 const RatingChart: React.FC<RatingChartProps> = ({
-    title: chartTitle, // Rename prop to avoid conflict with Chart.js Title plugin
-    chartData,
-    lineColor = '#84cc16', // Default to a Lichess-like green
-    className = ''
+    title: chartTitle, chartData, lineColor = '#84cc16', className = ''
 }) => {
-  const { theme } = useTheme(); // Get current theme
+  const { theme } = useTheme();
   const isDark = theme === 'dark';
-
-  // Define colors based on theme
-  const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)'; // Fainter grid
+  const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
   const textColor = isDark ? colors.slate[300] : colors.slate[600];
   const axisTitleColor = isDark ? colors.slate[400] : colors.slate[500];
   const titleColor = isDark ? colors.slate[100] : colors.slate[800];
-  const pointBgColor = isDark ? '#1e293b' : '#ffffff'; // Match card bg (slate-800 / white)
+  const pointBgColor = isDark ? '#1e293b' : '#ffffff';
 
-   // Customize dataset colors dynamically
-   const themedChartData = {
+  const themedChartData = {
     ...chartData,
     datasets: chartData.datasets.map(dataset => ({
         ...dataset,
         borderColor: lineColor,
-        backgroundColor: lineColor, // Used for point background potentially
-        pointRadius: 0, // Hide points by default
-        pointHoverRadius: 5, // Show on hover
+        backgroundColor: lineColor,
+        pointRadius: 0,
+        pointHoverRadius: 5,
         pointBackgroundColor: pointBgColor,
         pointBorderColor: lineColor,
         pointHoverBackgroundColor: lineColor,
         pointHoverBorderColor: pointBgColor,
-        borderWidth: 2, // Slightly thicker line
+        borderWidth: 2,
     })),
    };
 
-  // Define Chart.js options dynamically based on theme
   const options: ChartOptions<'line'> = {
     responsive: true,
-    maintainAspectRatio: false, // Allow chart to fill container height
+    maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: false, // Hide legend, title is enough
-      },
+      legend: { display: false, },
       title: {
-        display: true,
-        text: chartTitle, // Use the title prop
-        color: titleColor,
+        display: true, text: chartTitle, color: titleColor,
         font: {
-          size: 16,
-          family: "'Inter', sans-serif", // Using Inter bold for chart title
-          weight: '600',
+          size: 16, family: "'Inter', sans-serif",
+          weight: 600, // ** FIXED: Use number, not string **
         },
         padding: { top: 5, bottom: 15 }
       },
-      tooltip: {
-        backgroundColor: isDark ? 'rgba(45, 55, 72, 0.9)' : 'rgba(255, 255, 255, 0.9)', // Slightly transparent tooltip
-        titleColor: isDark ? colors.slate[100] : colors.slate[700],
-        bodyColor: isDark ? colors.slate[200] : colors.slate[600],
-        borderColor: gridColor,
-        borderWidth: 1,
-        padding: 10,
-        boxPadding: 5,
-        usePointStyle: true,
-        titleFont: { family: "'Inter', sans-serif", weight: 'bold' },
-        bodyFont: { family: "'Inter', sans-serif" },
+      tooltip: { /* ... same tooltip options ... */
+         backgroundColor: isDark ? 'rgba(45, 55, 72, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+         titleColor: isDark ? colors.slate[100] : colors.slate[700],
+         bodyColor: isDark ? colors.slate[200] : colors.slate[600],
+         borderColor: gridColor,
+         borderWidth: 1,
+         padding: 10,
+         boxPadding: 5,
+         usePointStyle: true,
+         titleFont: { family: "'Inter', sans-serif", weight: 'bold' },
+         bodyFont: { family: "'Inter', sans-serif" },
       }
     },
     scales: {
-      x: { // Cast to AxisOptions to include title
+      // Define scales directly without type assertion
+      x: {
           title: { // X-Axis Title
-              display: true,
-              text: 'Date',
-              color: axisTitleColor,
+              display: true, text: 'Date', color: axisTitleColor,
               font: { size: 12, family: "'Inter', sans-serif", weight: '500' },
-              padding: { top: 10 } // Add padding below title
+              padding: { top: 10 }
           },
           ticks: {
-            color: textColor,
-            font: { family: "'Inter', sans-serif", size: 10 }, // Smaller font for rotated labels
-            maxRotation: 45, // Rotate labels
-            minRotation: 45, // Rotate labels
-            autoSkip: true,
-            maxTicksLimit: 10 // Adjust as needed for density
+            color: textColor, font: { family: "'Inter', sans-serif", size: 10 },
+            maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: 10
           },
-          grid: {
-            color: gridColor,
-            display: false // Hide vertical grid lines
-          },
-           border: {
-             color: gridColor, // Color for the x-axis line
-             display: true
-           }
-      } as AxisOptions, // Assertion needed because 'title' isn't in base ScaleOptionsByType
-      y: { // Cast to AxisOptions to include title
+          grid: { display: false },
+          border: { color: gridColor, display: true }
+      },
+      y: {
           title: { // Y-Axis Title
-              display: true,
-              text: 'Rating',
-              color: axisTitleColor,
+              display: true, text: 'Rating', color: axisTitleColor,
               font: { size: 12, family: "'Inter', sans-serif", weight: '500' },
-              padding: { bottom: 10 } // Add padding below title
+              padding: { bottom: 10 }
           },
-          ticks: {
-            color: textColor,
-            font: { family: "'Inter', sans-serif" },
-            padding: 5 // Padding between ticks and axis title
-          },
-          grid: {
-            color: gridColor,
-            drawBorder: false, // Hide y-axis line itself, keep grid
-          },
-      } as AxisOptions // Assertion needed
+          ticks: { color: textColor, font: { family: "'Inter', sans-serif" }, padding: 5 },
+          grid: { color: gridColor, drawBorder: false },
+      }
     },
-     interaction: { // Improve hover interaction
-       mode: 'index', // Show tooltip for all datasets at that index
-       intersect: false, // Tooltip even if not directly hovering point
-     },
+     interaction: { mode: 'index', intersect: false },
   };
 
   return (
-    // Animation using whileInView triggered by parent or self
      <motion.div
         className={`bg-light-card dark:bg-dark-card p-4 rounded-xl shadow-card dark:shadow-card-dark border border-light-border dark:border-dark-border transition-colors duration-300 ${className}`}
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.2 }} // Trigger animation when 20% visible
+        viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
      >
-       <div style={{ height: '300px' }}> {/* Maintain fixed height */}
+       <div style={{ height: '300px' }}>
           <Line options={options} data={themedChartData} />
        </div>
     </motion.div>
